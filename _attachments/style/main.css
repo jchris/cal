@@ -1,0 +1,51 @@
+/* add styles here */
+
+
+body {
+  font-family:Optima, "Palatino Linotype", Garamond, Georgia, serif;
+/*  background:#8ab;
+*/}
+
+h2 {
+  color:#222;
+}
+
+#chat {
+  width:65%;
+}
+
+#sidebar {
+  float:right;
+  width:30%;
+}
+
+ul#messages {
+  list-style: none;
+}
+
+.clear {
+  clear:left;
+}
+
+ul#messages li {
+  padding:4px;
+}
+
+ul#messages img.gravatar {
+  padding-right:4px;
+  float:left;
+}
+
+.perma .say {
+  font-size:180%;
+}
+
+a.perma, .date {
+  font-size:70%;
+  color:#dde;
+}
+
+form {
+  padding:10px;
+  background:#ddd;
+}
