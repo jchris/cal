@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
+  <title>Couch Calender</title>
 <style type='text/css'>
 
 	body {
@@ -175,12 +176,12 @@
           c_xhr.open("GET", app.db.uri+"_changes?feed=longpoll&since="+db_info.update_seq, true);
           c_xhr.send("");
           c_xhr.onreadystatechange = function() {
-            if(c_xhr.readyState == 4) {
+            if (c_xhr.readyState == 4) {
               setTimeout(function() {
-              $('#calendar').fullCalendar('refetchEvents');
-            }, 100);
-          }
-          
+                $('#calendar').fullCalendar('refetchEvents');
+              }, 100);
+            };
+          };
           var user_name = trim($("#user").val());
           app.view("by_user_date",{
             startkey : [user_name, start.getFullYear(), start.getMonth()],
@@ -201,7 +202,6 @@
               callback(uniqEvents);
             }
           });
-          };
         }});
       },
      eventClick: function(calEvent) {
