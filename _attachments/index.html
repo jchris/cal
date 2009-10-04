@@ -1,7 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
-  <title>Couch Calender</title>
 <style type='text/css'>
 
 	body {
@@ -16,6 +15,33 @@
 		margin: 0 auto;
 		text-align: left;
 		}
+			
+			
+			.clearfix {
+				_height:1%;
+				zoom:1;
+			}
+			.clearfix:after {
+				content:".";
+				visibility:hidden;
+				display:block;
+				clear:both;
+				height:0;
+			}
+			
+			.tagbox * {
+				margin: 0;
+				padding: 0;
+				outline: none;
+			}
+			
+			.tagbox {
+				border: 1px solid #000;
+				margin: 10px 0;
+				min-height: 60px;
+				cursor: text;
+
+			}
 
 </style>
 <link rel="stylesheet" href="style/main.css" type="text/css">
@@ -23,6 +49,7 @@
         href="style/iphone.css" type="text/css" rel="stylesheet" />
 <link rel='stylesheet' type='text/css' href='./fullcalendar.css' />
 <link rel="stylesheet" type="text/css" href="./jquery.autocomplete.css" />
+<link rel="stylesheet" href="./tags.css" type="text/css" media="screen" title="no title" charset="utf-8">	
 <link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
 <script src="/_utils/script/json2.js"></script>
 <script type='text/javascript' src="/_utils/script/jquery.js"></script>
@@ -37,6 +64,7 @@
 <style type="text/css">@import "./jquery.timeentry.css";</style> 
 <script type="text/javascript" src="./jquery.timeentry.js"></script>
 <script type="text/javascript" src="./ui.datepicker.js"></script>
+<script type="text/javascript" src="./jquery.tagbox.js"></script>
 <script src="/_utils/script/jquery.couch.js"></script>
 <script src="vendor/couchapp/jquery.couchapp.js"></script>
 <script type='text/javascript'>
@@ -63,7 +91,11 @@
 <th width=100%>
 <tr>
 <td valign="top">
-<div type="text" id="datepicker"></div>  
+<div type="text" id="datepicker"></div>
+<p>
+Other Calendars to View:
+<div id="othercals" class="tagbox clearfix">
+</div>
 <td>
 <div id='calendar'></div>
 </table>
@@ -96,6 +128,7 @@
   var current_event = {};
   var all_users = [];
   var ignoreViewEvent = true;
+  var user_profile_doc = {};
   function trim(str) {
     return str.replace(/^\s*/, "").replace(/\s*$/, "");
   }
@@ -176,11 +209,11 @@
           c_xhr.open("GET", app.db.uri+"_changes?feed=longpoll&since="+db_info.update_seq, true);
           c_xhr.send("");
           c_xhr.onreadystatechange = function() {
-            if (c_xhr.readyState == 4) {
-              setTimeout(function() {
+              if(c_xhr.readyState == 4) {
+                setTimeout(function() {
                 $('#calendar').fullCalendar('refetchEvents');
               }, 100);
-            };
+            }
           };
           var user_name = trim($("#user").val());
           app.view("by_user_date",{
@@ -243,10 +276,46 @@
       }});
           
     $("#login").submit(function() {
-      $('#calendar').fullCalendar('refetchEvents');
+      var user = trim($("#user").val());
+      if (user != "") {
+        app.db.openDoc("cal-profile-" + user, {
+            success: function(doc) {
+                user_profile_doc = doc;
+                if (doc.othercals && doc.othercals.join) {
+                  $("#othercals").val(doc.othercals.join(","));
+                } else {
+                  $("#othercals").val("");
+                }
+                init_tagbox();
+                $('#calendar').fullCalendar('refetchEvents');
+              },
+            error: function(){              
+              $("#othercals").val("");            
+              init_tagbox();
+              $('#calendar').fullCalendar('refetchEvents');
+            }});
+        } else {
+          $("#othercals").val("");            
+          init_tagbox();
+          $('#calendar').fullCalendar('refetchEvents');
+        }
       return false;
     });
-      
+    
+    function init_tagbox() {
+      var options = {className: "tag"};
+      if (all_users != []) {
+        	options.applyToInput = function(input) {
+				  $(input).autocomplete(all_users, {
+				    width: 200
+				  });
+				}
+      }
+      $("#othercals").tagbox(options)
+    }
+    
+    init_tagbox();
+    
     $("#event").submit(function() {
       save_current_event(app);
        $("#dialog").dialog('close');

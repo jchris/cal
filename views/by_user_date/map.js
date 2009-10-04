@@ -23,6 +23,5 @@ function(doc) {
       && typeof doc.start == "number" && typeof doc.end == "number") {
         emitUsersMonthly(doc, doc.attendees, doc.start && doc.end);
         emitUsersMonthly(doc, doc.hosts, doc.start && doc.end);
-        emitUserMonthly(doc, "", doc.start, doc.end);
   }
 };
