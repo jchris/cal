@@ -13,72 +13,74 @@
 	#calendar {
 		width: 600px;
 		margin: 0 auto;
+		text-align: left;
 		}
 
 </style>
+<link rel="stylesheet" href="style/main.css" type="text/css">
+<link media="only screen and (max-device-width: 480px)" 
+        href="style/iphone.css" type="text/css" rel="stylesheet" />
 <link rel='stylesheet' type='text/css' href='./fullcalendar.css' />
+<link rel="stylesheet" type="text/css" href="./jquery.autocomplete.css" />
+<link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
 <script src="/_utils/script/json2.js"></script>
 <script type='text/javascript' src="/_utils/script/jquery.js"></script>
 <script type='text/javascript' src="./ui.core.js"></script>
 <script type='text/javascript' src="./ui.draggable.js"></script>
 <script type='text/javascript' src='./fullcalendar.js'></script>
-    <link rel="stylesheet" href="style/main.css" type="text/css">
-    <link media="only screen and (max-device-width: 480px)" 
-        href="style/iphone.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.resizable.js"></script>
+<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.dialog.js"></script>
+<style type="text/css">@import "./jquery.dateentry.css";</style> 
+<script type="text/javascript" src="./jquery.dateentry.js"></script>
+<script type="text/javascript" src="./jquery.autocomplete.js"></script>
+<style type="text/css">@import "./jquery.timeentry.css";</style> 
+<script type="text/javascript" src="./jquery.timeentry.js"></script>
+<script type="text/javascript" src="./ui.datepicker.js"></script>
 <script src="/_utils/script/jquery.couch.js"></script>
 <script src="vendor/couchapp/jquery.couchapp.js"></script>
 <script type='text/javascript'>
 
-	$(document).ready(function() {
-	
-		$('input').click(function() {
-		
-			/*$('#calendar').fullCalendar("addEvent", {
-				id: 999,
-				title: "Adam Shaw",
-				start: "2009-05-18"
-			});*/
-			
-			//$('#calendar').fullCalendar("removeEvent", 3);
-			/*
-			var events = $('#calendar').fullCalendar('getEventsById', 2);
-			var ev1 = events[0];
-			ev1.title = "yo";
-			ev1.start = '2009-05-14';
-			ev1.end = '2009-05-16';
-			$('#calendar').fullCalendar('updateEvent', ev1); */
-			
-		});
-	
-		var d = new Date();
-		var y = d.getFullYear();
-		var m = d.getMonth();
-	
-		
-	});
+  $(document).ready(function() {
+       $("#dialog").dialog({ autoOpen: false, width:450});
+       $("#startdate").dateEntry();
+       $("#starttime").timeEntry();
+       $("#enddate").dateEntry();
+       $("#endtime").timeEntry();
+  });
 
 </script>
 </head>
 <body>
-<form id="refresh" action="#">
+<form id="login" action="#">
   <div align="left">
-  <label for="title">You are</label> <input type="text" name="user" value="" id="user"> <input type="submit" value="refresh">
+  <label for="title">Enter your email</label> <input type="text" name="user" value="" id="user"> <input type="submit" value="login">
   </div>
 </form>
+<table border="0">
+<tr>
+<th width="150">
+<th width=100%>
+<tr>
+<td valign="top">
+<div type="text" id="datepicker"></div>  
+<td>
 <div id='calendar'></div>
-</body>
+</table>
+<div id="dialog" title="Entry">
 <div align="left">
       <form id="event" action="#">
         <p><label for="title">what</label> <input type="text" name="title" value="" id="title">
         </p>
-        <p><label for="start">when</label>
-          <input type="text" name="start" value="" id="start"size=40></p>
-        <p><label for="end">to</label>
-            <input type="text" name="end" value="" id="end" size=40></p>
+        <p><label for="startdate">when</label>
+          <input type="text" name="startdate" value="" id="startdate"size=10><input type="text" name="starttime" value="" id="starttime"size=8></p>
+        <p><label for="enddate">to</label>
+          <input type="text" name="enddate" value="" id="enddate"size=10>
+          <input type="text" name="endtime" value="" id="endtime"size=8></p>
         </p>
         <p><label for="where">where</label> <input type="text" name="where" value="" id="where">
         </p>
-        <p><label for="who">who</label> <input type="text" name="who" value="" id="who">
+        <p><label for="host">host(s)</label> <input type="text" name="hosts" value="" id="hosts" class="addressable">
+        <p><label for="who">attendees</label> <input type="text" name="attendees" value="" id="attendees" class="addressable">
         </p>
         <p><label for="description">description</label> <input type="text" name="description" value="" id="description">
         </p>
@@ -87,32 +89,53 @@
         </p>
       </form>
 </div>
+</div>
   <script type="text/javascript" charset="utf-8">
   var c_xhr;
   var current_event = {};
+  var all_users = [];
+  var ignoreViewEvent = true;
+  function trim(str) {
+    return str.replace(/^\s*/, "").replace(/\s*$/, "");
+  }
+  function split_trim(valstring, splitChars) {
+    var retArray = [];
+    if (!(valstring === undefined || valstring == "")) 
+         valstring.split(splitChars).forEach(
+          function(str){
+            var trimmed = trim(str);
+            if (trimmed != "" )
+              retArray.push(trimmed);
+            });
+    return retArray;
+  }
   function refresh_current_event_ui() {
       var doc = current_event.doc || {};
       $("#title").val(current_event.title || "");
-      $("#start").val(current_event.start.toString());
-      $("#end").val(current_event.end.toString());
+      $("#startdate").dateEntry('setDate', current_event.start);
+      $("#starttime").timeEntry('setTime', current_event.start);
+      $("#enddate").dateEntry('setDate', current_event.end);
+      $("#endtime").timeEntry('setTime', current_event.end);
       $("#where").val(doc.where || "");
       $("#description").val(doc.description || "");
-      $("#who").val(doc.who ? doc.who.join(", ") : $("#user").val().replace(/^\s*/, "").replace(/\s*$/, ""));
+      $("#hosts").val(doc.hosts ? doc.hosts.join(", ") : "");
+      $("#attendees").val(doc.attendees ? doc.attendees.join(", ") : "");
+  }
+  function combine_dt(d,t) {
+    return d.setHours(t.getHours(), t.getMinutes(), t.getSeconds(), 0);
   }
   function save_current_event(app) {
     try {
       var doc = current_event.doc || {type:"event"};
       doc.title = $("#title").val();
-      doc.start = new Date($("#start").val()).getTime();
-      doc.end = new Date($("#end").val()).getTime();
+      $("#starttime").timeEntry('getTime')
+      doc.start = combine_dt($("#startdate").dateEntry('getDate'),
+          $("#starttime").timeEntry('getTime'));
+      doc.end = combine_dt($("#enddate").dateEntry('getDate'),
+          $("#endtime").timeEntry('getTime'));
       doc.where = $("#where").val();
-      doc.who = $("#who").val();
-      if (doc.who == "") {
-        doc.who = [];
-      } else {
-        doc.who = doc.who.split(",").map(
-          function(name){return name.replace(/^\s*/, "").replace(/\s*$/, "")});
-      }
+      doc.hosts = split_trim($("#hosts").val(), ",");
+      doc.attendees = split_trim($("#attendees").val(), ",");
       doc.description = $("#description").val();
       app.db.saveDoc(doc);
     } catch (error) {
@@ -135,33 +158,56 @@
       return unique;
     };
     
-		$('#calendar').fullCalendar({
-			draggable: true,
-			events: function(start, end, callback) {
-        var user_name = $("#user").val().replace(/^\s*/, "").replace(/\s*$/, "");
-			  app.view("by_user_date",{
-          startkey : [user_name, start.getFullYear(), start.getMonth()],
-          endkey : [user_name, end.getFullYear(), end.getMonth()],
-          success: function(json) {
-            var events = json.rows.map(function(row) {
-              var doc = row.value;
-              return {
-                id: doc._id,
-                title: doc.title,
-                start: new Date(doc.start),
-                end: new Date(doc.end),
-                doc: doc}
-            });
-            var uniqEvents = uniqueBy(events, function(ev) {
-              return ev.id;
-            });
-            callback(uniqEvents);
+    $('#calendar').fullCalendar({
+      editable: true,
+      header: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'month,basicWeek,basicDay'
+      },
+      events: function(start, end, callback) {
+        app.db.info({success: function(db_info) {
+          if (c_xhr) {
+            c_xhr.onreadystatechange = null;
+            c_xhr.abort();
           }
-        })
+          c_xhr = jQuery.ajaxSettings.xhr();
+          c_xhr.open("GET", app.db.uri+"_changes?feed=longpoll&since="+db_info.update_seq, true);
+          c_xhr.send("");
+          c_xhr.onreadystatechange = function() {
+            if(c_xhr.readyState == 4) {
+              setTimeout(function() {
+              $('#calendar').fullCalendar('refetchEvents');
+            }, 100);
+          }
+          
+          var user_name = trim($("#user").val());
+          app.view("by_user_date",{
+            startkey : [user_name, start.getFullYear(), start.getMonth()],
+            endkey : [user_name, end.getFullYear(), end.getMonth()],
+            success: function(json) {
+              var events = json.rows.map(function(row) {
+                var doc = row.value;
+                return {
+                  id: doc._id,
+                  title: doc.title,
+                  start: new Date(doc.start),
+                  end: new Date(doc.end),
+                  doc: doc}
+              });
+              var uniqEvents = uniqueBy(events, function(ev) {
+                return ev.id;
+              });
+              callback(uniqEvents);
+            }
+          });
+          };
+        }});
       },
      eventClick: function(calEvent) {
        current_event = calEvent;
        refresh_current_event_ui();
+       $("#dialog").dialog('open');
      },
      eventDrop: function(calEvent) {
        current_event = calEvent;
@@ -175,27 +221,53 @@
        current_event.end = 
         new Date(current_event.start.getTime() + (1000 * 60 * 30));
        refresh_current_event_ui();
+       $("#hosts").val($("#user").val());
+       $("#dialog").dialog('open');
+     },
+     viewDisplay: function(view) {
+       if (!ignoreViewEvent) {
+         $("#datepicker").datepicker('setDate', view.start);
+       }
+       ignoreViewEvent = false;
      }
 		});
 		
-    $("#refresh").submit(function() {
-      $('#calendar').fullCalendar('refresh');
+   $("#datepicker").datepicker({
+      onSelect: function(text, inst) {
+        ignoreViewEvent = true;
+          $('#calendar').fullCalendar('gotoDate', inst.selectedYear, inst.selectedMonth, inst.selectedDay);
+      },
+      onChangeMonthYear: function(year, month, inst) {
+        ignoreViewEvent = true;
+          $('#calendar').fullCalendar('gotoDate', year, month - 1);
+      }});
+          
+    $("#login").submit(function() {
+      $('#calendar').fullCalendar('refetchEvents');
       return false;
     });
       
     $("#event").submit(function() {
       save_current_event(app);
-      $('#calendar').fullCalendar('refresh');
+       $("#dialog").dialog('close');
       return false;
     });
-    app.db.info({success: function(db_info) {
-      c_xhr = jQuery.ajaxSettings.xhr();
-      c_xhr.open("GET", app.db.uri+"_changes?feed=continuous&since="+db_info.update_seq, true);
-      c_xhr.send("");
-      c_xhr.onreadystatechange = function() {
-        $('#calendar').fullCalendar('refresh');
-      };        
-    }});
+    // setup users type ahead
+    app.view("all_users",{
+      group: true,
+      success: function(json) {
+        all_users = json.rows.map(function(row) {
+          return row.key;
+        });
+        $(".addressable").autocomplete(all_users, {
+            multiple: true,
+            autoFill: true
+        });
+        $("#user").autocomplete(all_users, {
+            autoFill: true
+        });
+      }
+    });
   });
   </script>
 </html>

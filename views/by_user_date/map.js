@@ -1,5 +1,12 @@
 function(doc) {
-  function emitMonthly(doc, user, start, end) {
+  function emitUsersMonthly(doc, users, start, end) {
+    if (users && users.forEach) {
+      users.forEach(function(user) {
+        emitUserMonthly(doc, user, doc.start, doc.end);
+      });
+    }
+  }
+  function emitUserMonthly(doc, user, start, end) {
     while (start <= end) {
       var d = new Date(start);
       emit([user, d.getFullYear(), d.getMonth()], doc);
@@ -10,14 +17,12 @@ function(doc) {
         d.setMonth(d.getMonth() + 1);
       }
       start = d.getTime();
-      // start = start + 60 * 60 * 24;
     }
   }
-  if (doc.type == "event" && doc.who && doc.who.forEach && doc.start && doc.end
-    && typeof doc.start == "number" && typeof doc.end == "number") {
-    doc.who.forEach(function(user) {
-      emitMonthly(doc, user, doc.start, doc.end);
-    });
-    emitMonthly(doc, "", doc.start, doc.end);
+  if (doc.type == "event" && doc.start && doc.end
+      && typeof doc.start == "number" && typeof doc.end == "number") {
+        emitUsersMonthly(doc, doc.attendees, doc.start && doc.end);
+        emitUsersMonthly(doc, doc.hosts, doc.start && doc.end);
+        emitUserMonthly(doc, "", doc.start, doc.end);
   }
 };
