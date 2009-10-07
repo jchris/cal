@@ -1,26 +1,27 @@
-.fc-event.red, .fc-event.red a {
+span.tag.red label, .fc-event.red, .fc-event.red a {
   background:red !important;
   border-color:red !important;
 }
 
-.fc-event.green, .fc-event.green a {
+span.tag.green label, .fc-event.green, .fc-event.green a {
   border-color:green !important;
   background:green !important;
 }
 
-.fc-event.blue, .fc-event.blue a {
+span.tag.blue label, .fc-event.blue, .fc-event.blue a {
   border-color:blue !important;
 
   background:blue !important;
 }
 
-.fc-event.yellow, .fc-event.yellow a {
+span.tag.yellow label, .fc-event.yellow, .fc-event.yellow a {
   border-color:yellow !important;
 
   background:yellow !important;
 }
 
-.fc-event.orange, .fc-event.orange a {
+span.tag.orange label, .fc-event.orange, .fc-event.orange a {
   border-color:orange !important;
   background:orange !important;
 }
+
