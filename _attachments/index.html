@@ -133,6 +133,7 @@ Other Calendars to View:
   var class_colors = ["red", "green", "blue", "yellow", "orange"];
   var cal_colors = {};
   var other_cals = [];
+  var drawtimeout;
   var ignoreViewEvent = true;
   var user_profile_doc = {};
   function trim(str) {
@@ -241,9 +242,8 @@ Other Calendars to View:
           });
           function add_user_cals(cals, uniqueEvents) {
             if (cals.length == 0) {
-              // TODO settimeout buffer thing
-                callback(uniqueEvents);
-                return;
+              callback(uniqueEvents);
+              return;
             }
             var name = cals.pop();
             var cal_color = cal_colors[name];
@@ -342,6 +342,7 @@ Other Calendars to View:
     
     function init_othercals(cals) {
       $("#othercals").val(cals.join(","));
+      // TODO display tags and calendars
     };
         
     function init_tagbox() {
@@ -351,6 +352,7 @@ Other Calendars to View:
       	  var tagged = function(tag) {
             other_cals.push(tag);
             $('#calendar').fullCalendar('refetchEvents');
+            save_profile();
           };
 			    $(input).autocomplete(all_users, {
 			      width: 200,
@@ -358,9 +360,6 @@ Other Calendars to View:
 			    });
 			  }
       }
-      options.blur(function() {
-        console.log("blur")
-      });
       $("#othercals").tagbox(options)
     }
     
@@ -372,17 +371,17 @@ Other Calendars to View:
       return false;
     });
     
-    $("#othercals").blur(function() {
+    function save_profile() {
       var user = trim($("#user").val());
       if (user) {
         user_profile_doc._id = "cal-profile-" + user;
         user_profile_doc.othercals = other_cals;
-        // split_trim($("#othercals").val(), ",");
         app.db.saveDoc(user_profile_doc, {
             success: function() {},
             error: function(){}});
       }
-    });
+    };
+    
     $("#othercals").keyup(function() {
 					clearTimeout(this.refreshTimeout);
 					this.refreshTimeout = setTimeout(function() {
