@@ -49,15 +49,15 @@
         href="style/iphone.css" type="text/css" rel="stylesheet" />
 <link rel='stylesheet' type='text/css' href='./fullcalendar.css' />
 <link rel="stylesheet" type="text/css" href="./jquery.autocomplete.css" />
-<link rel="stylesheet" href="./tags.css" type="text/css" media="screen" title="no title" charset="utf-8">	
+<link rel="stylesheet" href="./tags.css" type="text/css" media="screen" title="no title" charset="utf-8">		
 <link type="text/css" href="http://jqueryui.com/latest/themes/base/ui.all.css" rel="stylesheet" />
 <script src="/_utils/script/json2.js"></script>
 <script type='text/javascript' src="/_utils/script/jquery.js"></script>
 <script type='text/javascript' src="./ui.core.js"></script>
 <script type='text/javascript' src="./ui.draggable.js"></script>
 <script type='text/javascript' src='./fullcalendar.js'></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.resizable.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/latest/ui/ui.dialog.js"></script>
+<script type="text/javascript" src="./ui.resizable.js"></script>
+<script type="text/javascript" src="./ui.dialog.js"></script>
 <style type="text/css">@import "./jquery.dateentry.css";</style> 
 <script type="text/javascript" src="./jquery.dateentry.js"></script>
 <script type="text/javascript" src="./jquery.autocomplete.js"></script>
@@ -71,7 +71,7 @@
 
   $(document).ready(function() {
        $("#dialog").dialog({ autoOpen: false, width:450});
-       $("#startdate").dateEntry();
+       $("#startdate").dateEntry(); 
        $("#starttime").timeEntry();
        $("#enddate").dateEntry();
        $("#endtime").timeEntry();
@@ -94,8 +94,7 @@
 <div type="text" id="datepicker"></div>
 <p>
 Other Calendars to View:
-<div id="othercals" class="tagbox clearfix">
-</div>
+<input id="othercals" type="textarea" class="tagbox addressable" value="" />
 <td>
 <div id='calendar'></div>
 </table>
@@ -126,6 +125,7 @@ Other Calendars to View:
   <script type="text/javascript" charset="utf-8">
   var c_xhr;
   var current_event = {};
+  var user_profile_doc = {};
   var all_users = [];
   var ignoreViewEvent = true;
   var user_profile_doc = {};
@@ -216,25 +216,35 @@ Other Calendars to View:
             }
           };
           var user_name = trim($("#user").val());
-          app.view("by_user_date",{
-            startkey : [user_name, start.getFullYear(), start.getMonth()],
-            endkey : [user_name, end.getFullYear(), end.getMonth()],
-            success: function(json) {
-              var events = json.rows.map(function(row) {
-                var doc = row.value;
-                return {
-                  id: doc._id,
-                  title: doc.title,
-                  start: new Date(doc.start),
-                  end: new Date(doc.end),
-                  doc: doc}
-              });
-              var uniqEvents = uniqueBy(events, function(ev) {
-                return ev.id;
-              });
-              callback(uniqEvents);
+          var allcals = split_trim($("#othercals").val(), ",");
+          allcals.push(user_name);
+          function add_user_cals(cals, uniqueEvents) {
+            if (cals.length == 0) {
+                callback(uniqueEvents);
+                return;
             }
-          });
+            var name = cals.pop();
+            app.view("by_user_date",{
+              startkey : [name, start.getFullYear(), start.getMonth()],
+              endkey : [name, end.getFullYear(), end.getMonth()],
+              success: function(json) {
+                var events = json.rows.forEach(function(row) {
+                  var doc = row.value;
+                  uniqueEvents.push({
+                    id: doc._id,
+                    title: doc.title,
+                    start: new Date(doc.start),
+                    end: new Date(doc.end),
+                    doc: doc});
+                });
+                uniqueEvents = uniqueBy(uniqueEvents, function(ev) {
+                  return ev.id;
+                });
+                add_user_cals(cals, uniqueEvents);
+              }
+            });
+          };
+          add_user_cals(allcals, []);
         }});
       },
      eventClick: function(calEvent) {
@@ -286,17 +296,14 @@ Other Calendars to View:
                 } else {
                   $("#othercals").val("");
                 }
-                init_tagbox();
                 $('#calendar').fullCalendar('refetchEvents');
               },
             error: function(){              
-              $("#othercals").val("");            
-              init_tagbox();
+              $("#othercals").val("");
               $('#calendar').fullCalendar('refetchEvents');
             }});
         } else {
-          $("#othercals").val("");            
-          init_tagbox();
+          $("#othercals").val("");
           $('#calendar').fullCalendar('refetchEvents');
         }
       return false;
@@ -311,16 +318,34 @@ Other Calendars to View:
 				  });
 				}
       }
-      $("#othercals").tagbox(options)
+      
     }
     
-    init_tagbox();
+    //init_tagbox();
     
     $("#event").submit(function() {
       save_current_event(app);
        $("#dialog").dialog('close');
       return false;
     });
+    
+    $("#othercals").blur(function() {
+      var user = trim($("#user").val());
+      if (user) {
+        user_profile_doc._id = "cal-profile-" + user;
+        user_profile_doc.othercals = split_trim($("#othercals").val(), ",");
+        app.db.saveDoc(user_profile_doc, {
+            success: function() {},
+            error: function(){}});
+      }
+    });
+    $("#othercals").keyup(function() {
+					clearTimeout(this.refreshTimeout);
+					this.refreshTimeout = setTimeout(function() {
+              $('#calendar').fullCalendar('refetchEvents');
+					}, 300);
+    });
+      
     // setup users type ahead
     app.view("all_users",{
       group: true,
