@@ -85,7 +85,7 @@
 <body>
 <form id="login" action="#">
   <div align="left">
-  <label for="title">Enter your email</label> <input type="text" name="user" value="" id="user"> <input type="submit" value="login">
+  <label for="title">Enter your email</label> <input type="text" name="user" value="" id="user"> <input id="lbutton" type="submit" value="login">
   </div>
 </form>
 <table border="0">
@@ -330,13 +330,14 @@ Other Calendars to View:
               $("#othercals").val("");
               init_tagbox()
               $('#calendar').fullCalendar('refetchEvents');
-            }});
-        } else {
+            }
+          });
+      } else {
           // nothing to display
           $("#othercals").val("");
           init_tagbox()
           $('#calendar').fullCalendar('refetchEvents');
-        }
+      }
       return false;
     });
     
@@ -401,10 +402,17 @@ Other Calendars to View:
             autoFill: true
         });
         $("#user").autocomplete(all_users, {
-            autoFill: true
+            autoFill: true,
+            tagged : function() {
+              $("#login").submit();
+              $("#user").blur();
+            }
         });
       }
     });
+    $("#login").blur(function() {
+      $("#lbutton").hide();
+    });    
   });
   </script>
 </html>
