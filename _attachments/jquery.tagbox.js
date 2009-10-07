@@ -198,6 +198,9 @@
 				            }
 				            if (e.keyCode == 9 || e.keyCode == 13) {
 				                // if TAB or ENTER
+                        // if (settings.tagged) {
+                        //   settings.tagged($(this).val())
+                        // }
 				                if (!e.shiftKey && $.trim($(this).val()) && !$(this).closest(settings.tag_class).next(settings.tag_class).length) {
 				                    // And it's not shift+tab, and do not have a next tag
 				                    var tag = $(this).closest(settings.tag_class).after(new_tag());

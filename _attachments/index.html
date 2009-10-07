@@ -128,6 +128,7 @@ Other Calendars to View:
   var current_event = {};
   var user_profile_doc = {};
   var all_users = [];
+  var other_cals = [];
   var ignoreViewEvent = true;
   var user_profile_doc = {};
   function trim(str) {
@@ -217,7 +218,13 @@ Other Calendars to View:
             }
           };
           var user_name = trim($("#user").val());
-          var allcals = split_trim($("#othercals").val(), ",");
+          var allcals = [];
+          for (var i=0; i < other_cals.length; i++) {
+            allcals.push(other_cals[i]);
+          };
+          // console.log(other_cals);
+          // console.log(allcals);
+          // split_trim($("#othercals").val(), ",");
           allcals.push(user_name);
           function add_user_cals(cals, uniqueEvents) {
             if (cals.length == 0) {
@@ -293,36 +300,52 @@ Other Calendars to View:
             success: function(doc) {
                 user_profile_doc = doc;
                 if (doc.othercals && doc.othercals.join) {
-                  $("#othercals").val(doc.othercals.join(","));
+                  // add other cals to display
+                  init_othercals(doc.othercals);
                 } else {
+                  // nothing to display
                   $("#othercals").val("");
                 }
+                init_tagbox()
                 $('#calendar').fullCalendar('refetchEvents');
               },
             error: function(){              
+              // nothing to display
               $("#othercals").val("");
+              init_tagbox()
               $('#calendar').fullCalendar('refetchEvents');
             }});
         } else {
+          // nothing to display
           $("#othercals").val("");
+          init_tagbox()
           $('#calendar').fullCalendar('refetchEvents');
         }
       return false;
     });
     
+    function init_othercals(cals) {
+      $("#othercals").val(cals.join(","));
+    };
+        
     function init_tagbox() {
       var options = {className: "tag"};
       if (all_users != []) {
-        	options.applyToInput = function(input) {
-				  $(input).autocomplete(all_users, {
-				    width: 200
-				  });
-				}
+      	options.applyToInput = function(input) {
+      	  var tagged = function(tag) {
+            other_cals.push(tag);
+            $('#calendar').fullCalendar('refetchEvents');
+          };
+			    $(input).autocomplete(all_users, {
+			      width: 200,
+			      tagged: tagged
+			    });
+			  }
       }
-      
+      $("#othercals").tagbox(options)
     }
     
-    //init_tagbox();
+    init_tagbox();
     
     $("#event").submit(function() {
       save_current_event(app);
@@ -334,7 +357,8 @@ Other Calendars to View:
       var user = trim($("#user").val());
       if (user) {
         user_profile_doc._id = "cal-profile-" + user;
-        user_profile_doc.othercals = split_trim($("#othercals").val(), ",");
+        user_profile_doc.othercals = other_cals;
+        // split_trim($("#othercals").val(), ",");
         app.db.saveDoc(user_profile_doc, {
             success: function() {},
             error: function(){}});
