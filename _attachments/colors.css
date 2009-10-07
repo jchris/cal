@@ -1,0 +1,26 @@
+.fc-event.red, .fc-event.red a {
+  background:red !important;
+  border-color:red !important;
+}
+
+.fc-event.green, .fc-event.green a {
+  border-color:green !important;
+  background:green !important;
+}
+
+.fc-event.blue, .fc-event.blue a {
+  border-color:blue !important;
+
+  background:blue !important;
+}
+
+.fc-event.yellow, .fc-event.yellow a {
+  border-color:yellow !important;
+
+  background:yellow !important;
+}
+
+.fc-event.orange, .fc-event.orange a {
+  border-color:orange !important;
+  background:orange !important;
+}
