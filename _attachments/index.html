@@ -413,6 +413,9 @@ Other Calendars to View:
     $("#login").blur(function() {
       $("#lbutton").hide();
     });    
+    $("#login").click(function() {
+      $('#calendar').fullCalendar('refetchEvents');
+    });
   });
   </script>
 </html>
